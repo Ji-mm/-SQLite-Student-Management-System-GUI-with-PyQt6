@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QApplication, QVBoxLayout, \
     QLabel, QWidget, QGridLayout, QLineEdit, \
     QPushButton, QMainWindow, QTableWidget, \
-    QTableWidgetItem, QDialog, QComboBox, QToolBar
+    QTableWidgetItem, QDialog, QComboBox, QToolBar, QStatusBar
 from PyQt6.QtGui import QAction, QIcon
 import sqlite3
 import sys
@@ -31,13 +31,6 @@ class MainWindow(QMainWindow):
         search_action.triggered.connect(self.search)
         edit_menu_item.addAction(search_action)
 
-        # Create toolbar and add toolbar elements
-        toolbar = QToolBar()
-        toolbar.setMovable(True)
-        self.addToolBar(toolbar)
-        toolbar.addAction(add_student_action)
-        toolbar.addAction(search_action)
-
         # Add a table structure
         self.table = QTableWidget()
         self.table.setColumnCount(4)
@@ -45,8 +38,21 @@ class MainWindow(QMainWindow):
         self.table.verticalHeader().setVisible(False)
         self.setCentralWidget(self.table)
 
-        # Get data from database
+        # Create toolbar and elements
+        toolbar = QToolBar()
+        toolbar.setMovable(True)
+        self.addToolBar(toolbar)
+        toolbar.addAction(add_student_action)
+        toolbar.addAction(search_action)
 
+        # Create a status bar and elements
+        self.statusbar = QStatusBar()
+        self.setStatusBar(self.statusbar)
+
+        # Detect a cell click
+        self.table.cellClicked.connect(self.cell_clicked)
+
+        # Get data from database
     def load_data(self):
         # Connect to database
         connection = sqlite3.connect(r"C:\Users\Atudo\PycharmProjects\studentmanagementsystem\venv\database.db")
@@ -71,6 +77,34 @@ class MainWindow(QMainWindow):
     def search(self):
         dialog = SearchDialog()
         dialog.exec()
+
+    def cell_clicked(self):
+        # Add edit button
+        edit_button = QPushButton("Edit Record")
+        edit_button.clicked.connect(self.edit)
+
+        # Add delete button
+        delete_button = QPushButton("Delete Record")
+        edit_button.clicked.connect(self.delete)
+
+        self.statusbar.addWidget(edit_button)
+        self.statusbar.addWidget(delete_button)
+
+    def edit(self):
+        dialog = EditDialog()
+        dialog.exec()
+
+    def delete(self):
+        dialog = DeleteDialog()
+        dialog.exec()
+
+
+class EditDialog(QDialog):
+    pass
+
+
+class DeleteDialog(QDialog):
+    pass
 
 
 class InsertDialog(QDialog):
