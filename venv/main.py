@@ -16,8 +16,8 @@ class MainWindow(QMainWindow):
 
         # Add a menu bar
         file_menu_item = self.menuBar().addMenu("&File")
-        about_menu_item = self.menuBar().addMenu("&Help")
         edit_menu_item = self.menuBar().addMenu("&Edit")
+        help_menu_item = self.menuBar().addMenu("&Help")
 
         # Add submenu for menu buttons
         add_student_action = QAction(QIcon("venv/icons/add.png"), "Add Student", self)
@@ -25,7 +25,8 @@ class MainWindow(QMainWindow):
         file_menu_item.addAction(add_student_action)
 
         about_action = QAction("About", self)
-        about_menu_item.addAction(about_action)
+        help_menu_item.addAction(about_action)
+        about_action.triggered.connect(self.about)
 
         search_action = QAction(QIcon("venv/icons/search.png"), "Search", self)
         search_action.triggered.connect(self.search)
@@ -103,6 +104,23 @@ class MainWindow(QMainWindow):
     def delete(self):
         dialog = DeleteDialog()
         dialog.exec()
+
+    def about(self):
+        dialog = AboutDialog()
+        dialog.exec()
+
+
+class AboutDialog(QMessageBox):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("About")
+        content = """
+        This app was created as a personal project for learning Python PyQt6 toolkit.
+        It is designed to assist with data keeping on SQLite Database.
+        Feel free to modify it and add recommendations where necessary.
+        Thank you.
+        """
+        self.setText(content)
 
 
 class EditDialog(QDialog):
@@ -193,7 +211,7 @@ class DeleteDialog(QDialog):
         self.close()
 
         confirmation_widget = QMessageBox()
-        confirmation_widget.setText("Details successfully deleted!")
+        confirmation_widget.setText("Record successfully deleted!")
         confirmation_widget.exec()
 
 
