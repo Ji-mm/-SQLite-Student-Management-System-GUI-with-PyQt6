@@ -87,6 +87,11 @@ class MainWindow(QMainWindow):
         delete_button = QPushButton("Delete Record")
         edit_button.clicked.connect(self.delete)
 
+        children = self.findChildren(QPushButton)
+        if children:
+            for child in children:
+                self.statusbar.removeWidget(child)
+
         self.statusbar.addWidget(edit_button)
         self.statusbar.addWidget(delete_button)
 
@@ -100,7 +105,44 @@ class MainWindow(QMainWindow):
 
 
 class EditDialog(QDialog):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Update Student Details")
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
+
+        layout = QVBoxLayout()
+        # Display default student name
+        index = database.table.currentRow()
+        student_name = database.table.item(index, 1).text()
+        # Add student name widget
+        self.student_name = QLineEdit(student_name)
+        self.student_name.setPlaceholderText("Name")
+        layout.addWidget(self.student_name)
+
+        # Add contact widget
+        contact = database.table.item(index, 3).text()
+        self.contact = QLineEdit(contact)
+        self.contact.setPlaceholderText("Contact")
+        layout.addWidget(self.contact)
+
+        # Add combo box of courses
+        course_name = database.table.item(index, 2).text()
+        self.course_name = QComboBox()
+        courses = ["Biology", "Math", "Astronomy", "Physics"]
+        self.course_name.addItems(courses)
+        self.course_name.setCurrentText(course_name)
+        layout.addWidget(self.course_name)
+
+        # Add a submit button
+        button = QPushButton("Register")
+        button.clicked.connect(self.update_student_details)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def update_student_details(self):
+        pass
 
 
 class DeleteDialog(QDialog):
