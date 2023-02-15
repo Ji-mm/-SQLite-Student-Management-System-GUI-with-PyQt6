@@ -53,9 +53,10 @@ class MainWindow(QMainWindow):
         self.table.cellClicked.connect(self.cell_clicked)
 
         # Get data from database
+
     def load_data(self):
         # Connect to database
-        connection = sqlite3.connect(r"C:\Users\Atudo\PycharmProjects\studentmanagementsystem\venv\database.db")
+        connection = sqlite3.connect("venv\database.db")
         # Get the table
         results = connection.execute("SELECT * FROM students")
         # Reset the table
@@ -120,6 +121,9 @@ class EditDialog(QDialog):
         self.student_name.setPlaceholderText("Name")
         layout.addWidget(self.student_name)
 
+        # Get student ID
+        self.student_ID = database.table.item(index, 0).text()
+
         # Add contact widget
         contact = database.table.item(index, 3).text()
         self.contact = QLineEdit(contact)
@@ -135,14 +139,25 @@ class EditDialog(QDialog):
         layout.addWidget(self.course_name)
 
         # Add a submit button
-        button = QPushButton("Register")
+        button = QPushButton("Update")
         button.clicked.connect(self.update_student_details)
         layout.addWidget(button)
 
         self.setLayout(layout)
 
     def update_student_details(self):
-        pass
+        connection = sqlite3.connect("venv\database.db")
+        cursor = connection.cursor()
+        cursor.execute("UPDATE students SET name = ?, course = ?, "
+                       "mobile = ? WHERE id = ?",
+                       (self.student_name.text(),
+                        self.course_name.itemText(self.course_name.currentIndex()),
+                        self.contact.text(), self.student_ID))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        # Refresh the table
+        database.load_data()
 
 
 class DeleteDialog(QDialog):
@@ -184,7 +199,7 @@ class InsertDialog(QDialog):
         name = self.student_name.text()
         course = self.course_name.itemText(self.course_name.currentIndex())
         contact = self.contact.text()
-        connection = sqlite3.connect(r"C:\Users\Atudo\PycharmProjects\studentmanagementsystem\venv\database.db")
+        connection = sqlite3.connect("venv\database.db")
         cursor = connection.cursor()
         # Add items to database
         cursor.execute("INSERT INTO students (name, course, mobile) VALUES (?, ?, ?)", (name, course, contact))
@@ -192,6 +207,7 @@ class InsertDialog(QDialog):
         connection.commit()
         cursor.close()
         connection.close()
+        # Refresh the table
         database.load_data()
 
 
@@ -217,7 +233,7 @@ class SearchDialog(QDialog):
 
     def search(self):
         name = self.name.text()
-        connection = sqlite3.connect(r"C:\Users\Atudo\PycharmProjects\studentmanagementsystem\venv\database.db")
+        connection = sqlite3.connect("venv\database.db")
         cursor = connection.cursor()
         result = cursor.execute("SELECT * FROM students WHERE name = ?", (name,))
         rows = list(result)[0]
