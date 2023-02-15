@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QApplication, QVBoxLayout, \
 from PyQt6.QtGui import QAction
 import sqlite3
 import sys
+from PyQt6.QtCore import Qt
 
 
 class MainWindow(QMainWindow):
@@ -15,15 +16,19 @@ class MainWindow(QMainWindow):
         # Add a menu bar
         file_menu_item = self.menuBar().addMenu("&File")
         about_menu_item = self.menuBar().addMenu("&Help")
+        edit_menu_item = self.menuBar().addMenu("&Edit")
 
-        # Add submenu for menu bar
+        # Add submenu for menu buttons
         file_menu_action = QAction("Add Student", self)
         file_menu_action.triggered.connect(self.insert)
         file_menu_item.addAction(file_menu_action)
 
         about_action = QAction("About", self)
         about_menu_item.addAction(about_action)
-        about_action.setMenuRole(QAction.MenuRole.NoRole)
+
+        search_action = QAction("Search", self)
+        search_action.triggered.connect(self.search)
+        edit_menu_item.addAction(search_action)
 
         # Add a table structure
         self.table = QTableWidget()
@@ -35,7 +40,7 @@ class MainWindow(QMainWindow):
         # Get data from database
     def load_data(self):
         # Connect to database
-        connection = sqlite3.connect("database.db")
+        connection = sqlite3.connect(r"C:\Users\Atudo\PycharmProjects\studentmanagementsystem\venv\database.db")
         # Get the table
         results = connection.execute("SELECT * FROM students")
         # Reset the table
@@ -50,6 +55,11 @@ class MainWindow(QMainWindow):
         # Add insert method
     def insert(self):
         dialog = InsertDialog()
+        dialog.exec()
+
+    # Add search method
+    def search(self):
+        dialog = SearchDialog()
         dialog.exec()
 
 
@@ -88,12 +98,47 @@ class InsertDialog(QDialog):
         name = self.student_name.text()
         course = self.course_name.itemText(self.course_name.currentIndex())
         contact = self.contact.text()
-        connection = sqlite3.connect("database.db")
+        connection = sqlite3.connect(r"C:\Users\Atudo\PycharmProjects\studentmanagementsystem\venv\database.db")
         cursor = connection.cursor()
         # Add items to database
         cursor.execute("INSERT INTO students (name, course, mobile) VALUES (?, ?, ?)", (name, course, contact))
 
         connection.commit()
+        cursor.close()
+        connection.close()
+        database.load_data()
+
+
+class SearchDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Search Student")
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
+
+        layout = QVBoxLayout()
+        # Add search box widget
+        self.name = QLineEdit()
+        self.name.setPlaceholderText("Name")
+        layout.addWidget(self.name)
+
+        # Add a submit button
+        button = QPushButton("Search")
+        button.clicked.connect(self.search)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def search(self):
+        name = self.name.text()
+        connection = sqlite3.connect(r"C:\Users\Atudo\PycharmProjects\studentmanagementsystem\venv\database.db")
+        cursor = connection.cursor()
+        result = cursor.execute("SELECT * FROM students WHERE name = ?", (name,))
+        rows = list(result)[0]
+        items = database.table.findItems(name, Qt.MatchFlag.MatchFixedString)
+        for item in items:
+            database.table.item(item.row(), 1).setSelected(True)
+
         cursor.close()
         connection.close()
         database.load_data()
